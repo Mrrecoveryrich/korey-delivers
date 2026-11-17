@@ -67,6 +67,14 @@
   else arm();
 })();
 </script>
+<script>
+/* Driver mode is private: the driver dashboard exists in the UI only when the
+   page is opened with ?driver=1 in the URL. Without it, the client page shows
+   no Driver tab, no dashboard link, and no hint of the dashboard anywhere. */
+window.__kdDriver = false;
+try { window.__kdDriver = new URLSearchParams(window.location.search).get("driver") === "1"; } catch (e) {}
+if (window.__kdDriver) document.documentElement.classList.add("kd-driver");
+</script>
 <style>
   :root{
     --bg:#ffffff; --bg-soft:#f4f4f2; --surface:#ffffff; --surface-2:#fafaf8;
@@ -220,7 +228,11 @@
   .step h3{font-size:1.05rem;font-weight:800;margin:8px 0 6px}
   .step p{color:var(--ink-2);font-size:.93rem}
 
-  /* ---------- driver dashboard ---------- */
+  /* ---------- driver dashboard (private: ?driver=1 only) ---------- */
+  #tabDriver{display:none}
+  html.kd-driver #tabDriver{display:inline-flex}
+  #confDriver{display:none}
+  html.kd-driver #confDriver{display:inline-flex}
   #driverView{display:none}
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
   .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
@@ -755,6 +767,8 @@
   "use strict";
   var DRIVER_PHONE = "+15173910133";
   var DRIVER_EMAIL = "krispywear@gmail.com";
+  /* The dashboard is reachable only on a ?driver=1 URL; the public page is client-only. */
+  var DRIVER_MODE = !!window.__kdDriver;
 
   var rates = { food: 7, package: 8, store: 12, perMile: 1.5, rush: 3 };
   var svcNames = { food: "Food pickup", package: "Package delivery", store: "Store run" };
@@ -777,6 +791,7 @@
 
   /* ---------- view switching ---------- */
   function setView(driver){
+    if (driver && !DRIVER_MODE) driver = false;
     $("driverView").style.display = driver ? "block" : "none";
     $("clientView").style.display = driver ? "none" : "block";
     $("tabClient").setAttribute("aria-pressed", String(!driver));
